@@ -19,7 +19,7 @@ const FilterChip = ({ activeFilters, onClick }: FilterChipProps) => {
       <Filter className="h-4 w-4" />
       Filters
       {activeFilters > 0 && (
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3B82F6] text-xs text-white">
           {activeFilters}
         </span>
       )}
