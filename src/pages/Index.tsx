@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FilterChip from '@/components/FilterChip';
 import {
   Sheet,
@@ -30,6 +30,23 @@ const Index = () => {
     dateCreated: 'any',
   });
 
+  // Effect to handle child checkboxes when parent changes
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      source: {
+        ...prev.source,
+        web: prev.source.all ? true : prev.source.web,
+        referral: prev.source.all ? true : prev.source.referral,
+      },
+      leadType: {
+        ...prev.leadType,
+        buyer: prev.leadType.all ? true : prev.leadType.buyer,
+        seller: prev.leadType.all ? true : prev.leadType.seller,
+      },
+    }));
+  }, [filters.source.all, filters.leadType.all]);
+
   const activeFiltersCount = [
     filters.leadStatus !== 'open',
     Object.values(filters.source).some(v => !v),
@@ -38,13 +55,32 @@ const Index = () => {
   ].filter(Boolean).length;
 
   const handleCheckboxChange = (section: 'source' | 'leadType', key: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [key]: !prev[section][key],
-      }
-    }));
+    if (key === 'all') {
+      // When toggling the parent checkbox
+      const newValue = !filters[section].all;
+      setFilters(prev => ({
+        ...prev,
+        [section]: {
+          all: newValue,
+          // Set all children to match parent
+          ...(section === 'source' 
+            ? { web: newValue, referral: newValue }
+            : { buyer: newValue, seller: newValue }
+          ),
+        }
+      }));
+    } else {
+      // When toggling a child checkbox
+      setFilters(prev => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [key]: !prev[section][key],
+          // If any child is unchecked, uncheck the parent
+          all: prev[section].all && !prev[section][key],
+        }
+      }));
+    }
   };
 
   return (
@@ -97,18 +133,20 @@ const Index = () => {
                   />
                   <Label htmlFor="source-all">All (Default)</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-4">
                   <Checkbox
                     id="source-web"
                     checked={filters.source.web}
+                    disabled={filters.source.all}
                     onCheckedChange={() => handleCheckboxChange('source', 'web')}
                   />
                   <Label htmlFor="source-web">Web</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-4">
                   <Checkbox
                     id="source-referral"
                     checked={filters.source.referral}
+                    disabled={filters.source.all}
                     onCheckedChange={() => handleCheckboxChange('source', 'referral')}
                   />
                   <Label htmlFor="source-referral">Referral</Label>
@@ -127,18 +165,20 @@ const Index = () => {
                   />
                   <Label htmlFor="type-all">All (Default)</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-4">
                   <Checkbox
                     id="type-buyer"
                     checked={filters.leadType.buyer}
+                    disabled={filters.leadType.all}
                     onCheckedChange={() => handleCheckboxChange('leadType', 'buyer')}
                   />
                   <Label htmlFor="type-buyer">Buyer</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-4">
                   <Checkbox
                     id="type-seller"
                     checked={filters.leadType.seller}
+                    disabled={filters.leadType.all}
                     onCheckedChange={() => handleCheckboxChange('leadType', 'seller')}
                   />
                   <Label htmlFor="type-seller">Seller</Label>
