@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import FilterChip from '@/components/FilterChip';
 import {
@@ -30,7 +29,6 @@ const Index = () => {
     dateCreated: 'any',
   });
 
-  // Effect to handle child checkboxes when parent changes
   useEffect(() => {
     setFilters(prev => ({
       ...prev,
@@ -56,13 +54,11 @@ const Index = () => {
 
   const handleCheckboxChange = (section: 'source' | 'leadType', key: string) => {
     if (key === 'all') {
-      // When toggling the parent checkbox
       const newValue = !filters[section].all;
       setFilters(prev => ({
         ...prev,
         [section]: {
           all: newValue,
-          // Set all children to match parent
           ...(section === 'source' 
             ? { web: newValue, referral: newValue }
             : { buyer: newValue, seller: newValue }
@@ -70,13 +66,17 @@ const Index = () => {
         }
       }));
     } else {
-      // When toggling a child checkbox
+      const otherChildKey = section === 'source' ? (key === 'web' ? 'referral' : 'web') : (key === 'buyer' ? 'seller' : 'buyer');
+      
+      if (filters[section][key] && !filters[section][otherChildKey]) {
+        return;
+      }
+
       setFilters(prev => ({
         ...prev,
         [section]: {
           ...prev[section],
           [key]: !prev[section][key],
-          // If any child is unchecked, uncheck the parent
           all: prev[section].all && !prev[section][key],
         }
       }));
