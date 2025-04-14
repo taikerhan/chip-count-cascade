@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import FilterChip from '@/components/FilterChip';
 import {
@@ -13,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -29,6 +29,11 @@ const Index = () => {
       seller: true,
     },
     dateCreated: 'any',
+  });
+
+  const [validationErrors, setValidationErrors] = useState({
+    source: false,
+    leadType: false
   });
 
   useEffect(() => {
@@ -55,6 +60,11 @@ const Index = () => {
   ].filter(Boolean).length;
 
   const handleCheckboxChange = (section: 'source' | 'leadType', key: string) => {
+    setValidationErrors(prev => ({
+      ...prev,
+      [section]: false
+    }));
+
     if (key === 'all') {
       const newValue = !filters[section].all;
       setFilters(prev => ({
@@ -86,16 +96,15 @@ const Index = () => {
   };
 
   const validateFilters = () => {
-    // Check if at least one filter is selected in each section
     const hasSourceSelected = filters.source.all || filters.source.web || filters.source.referral;
     const hasLeadTypeSelected = filters.leadType.all || filters.leadType.buyer || filters.leadType.seller;
     
-    if (!hasSourceSelected || !hasLeadTypeSelected) {
-      toast.error("At least one filter must be selected in each section");
-      return false;
-    }
+    setValidationErrors({
+      source: !hasSourceSelected,
+      leadType: !hasLeadTypeSelected
+    });
     
-    return true;
+    return hasSourceSelected && hasLeadTypeSelected;
   };
 
   return (
@@ -138,7 +147,15 @@ const Index = () => {
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-medium">Source</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">Source</h3>
+                {validationErrors.source && (
+                  <div className="flex items-center text-destructive text-sm">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    <span>Select at least one option</span>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -170,7 +187,15 @@ const Index = () => {
             </div>
 
             <div className="space-y-3">
-              <h3 className="font-medium">Lead Type</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">Lead Type</h3>
+                {validationErrors.leadType && (
+                  <div className="flex items-center text-destructive text-sm">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    <span>Select at least one option</span>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -232,20 +257,23 @@ const Index = () => {
             <Button 
               variant="outline" 
               className="flex-1"
-              onClick={() => setFilters({
-                leadStatus: 'open',
-                source: {
-                  all: true,
-                  web: true,
-                  referral: true,
-                },
-                leadType: {
-                  all: true,
-                  buyer: true,
-                  seller: true,
-                },
-                dateCreated: 'any',
-              })}
+              onClick={() => {
+                setFilters({
+                  leadStatus: 'open',
+                  source: {
+                    all: true,
+                    web: true,
+                    referral: true,
+                  },
+                  leadType: {
+                    all: true,
+                    buyer: true,
+                    seller: true,
+                  },
+                  dateCreated: 'any',
+                });
+                setValidationErrors({ source: false, leadType: false });
+              }}
             >
               Reset
             </Button>
@@ -254,7 +282,7 @@ const Index = () => {
                 className="flex-1 bg-[#3B82F6]"
                 onClick={(e) => {
                   if (!validateFilters()) {
-                    e.preventDefault(); // Prevent closing the sheet if validation fails
+                    e.preventDefault();
                   }
                 }}
               >
