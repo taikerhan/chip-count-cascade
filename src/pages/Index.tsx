@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import FilterChip from '@/components/FilterChip';
 import {
@@ -12,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Index = () => {
   const [filters, setFilters] = useState({
@@ -81,6 +83,19 @@ const Index = () => {
         }
       }));
     }
+  };
+
+  const validateFilters = () => {
+    // Check if at least one filter is selected in each section
+    const hasSourceSelected = filters.source.all || filters.source.web || filters.source.referral;
+    const hasLeadTypeSelected = filters.leadType.all || filters.leadType.buyer || filters.leadType.seller;
+    
+    if (!hasSourceSelected || !hasLeadTypeSelected) {
+      toast.error("At least one filter must be selected in each section");
+      return false;
+    }
+    
+    return true;
   };
 
   return (
@@ -235,7 +250,16 @@ const Index = () => {
               Reset
             </Button>
             <SheetClose asChild>
-              <Button className="flex-1 bg-[#3B82F6]">Apply</Button>
+              <Button 
+                className="flex-1 bg-[#3B82F6]"
+                onClick={(e) => {
+                  if (!validateFilters()) {
+                    e.preventDefault(); // Prevent closing the sheet if validation fails
+                  }
+                }}
+              >
+                Apply
+              </Button>
             </SheetClose>
           </div>
         </SheetContent>
